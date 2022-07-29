@@ -1,0 +1,10 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/wallet
+    username: wallet_dba
+    password: 123456s
+
+
+
+
+
