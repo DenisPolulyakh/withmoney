@@ -3,12 +3,86 @@
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
     <changeSet author="dpolulyakh" id="2022-02-16-09-22152">
         <sql>
-            -- Таблица
+            -- Таблица категории
             create table money.category (
             id serial,
-            name  VARCHAR(64)          not null
-
+            account_id         integer       not null,
+            state              text          not null,
+            name_category      text          not null,
+            total_amount       numeric(15,2) DEFAULT 0.0 NOT NULL,
+            description        text,
+            create_time        timestamp     NOT NULL,
+            update_time        timestamp     NOT NULL,
+            primary key (id)
             );
+
+            comment on table  money.category                       is    'Категория';
+            comment on column money.category.id                    is    'Идентификатор';
+            comment on column money.category.account_id            is    'Счёт к которому привязана категория';
+            comment on column money.category.state                 is    'Статус';
+            comment on column money.category.name_category         is    'Наименование категории';
+            comment on column money.category.total_amount          is    'Сумма';
+            comment on column money.category.description           is    'Описание категории';
+            comment on column money.category.create_time           is    'Время создания записи';
+            comment on column money.category.update_time           is    'Время обновления записи';
+
+
+
+            -- Таблица операция категории
+            -- Приход/Расход/Резерв
+            create table money.category_operation (
+            id serial,
+            category_id          integer  not null,
+            amount               numeric(15,2) DEFAULT 0.0 NOT NULL,
+            operation_type       text,
+            comment              text,
+            operation_time       timestamp     NOT NULL,
+            create_time          timestamp     NOT NULL,
+            update_time          timestamp     NOT NULL,
+            primary key (id)
+            );
+
+            comment on table  money.category_operation                       is    'Операция категории';
+            comment on column money.category_operation.id                    is    'Идентификатор';
+            comment on column money.category_operation.category_id           is    'Ссылка на категорию';
+            comment on column money.category_operation.amount                is    'Сумма операции';
+            comment on column money.category_operation.operation_type        is    'Тип операции';
+            comment on column money.category_operation.comment               is    'Комментарий';
+            comment on column money.category_operation.operation_time        is    'Время операции';
+            comment on column money.category_operation.create_time           is    'Время создания записи';
+            comment on column money.category_operation.update_time           is    'Время обновления записи';
+
+            -- Таблица счёт
+            create table money.account (
+            id serial,
+            name_account         text          not null,
+            state                text          not null,
+            currency             text,
+            description          text,
+            create_time          timestamp     not null,
+            update_time          timestamp     not null,
+            primary key (id)
+            );
+
+            comment on table  money.account                       is    'Счёт';
+            comment on column money.account.id                    is    'Идентификатор';
+            comment on column money.account.name_account          is    'Наименование счёта';
+            comment on column money.account.state                 is    'Статус';
+            comment on column money.account.currency              is    'Валюта';
+            comment on column money.account.description           is    'Описание счёта';
+            comment on column money.account.create_time           is    'Время создания записи';
+            comment on column money.account.update_time           is    'Время обновления записи';
+
+
+            ALTER TABLE money.category_operation
+            ADD CONSTRAINT F_CATEGORY_OPERATION_CATEGORY FOREIGN KEY (category_id)
+            REFERENCES money.category (id) DEFERRABLE INITIALLY DEFERRED;
+
+
+            ALTER TABLE money.category
+            ADD CONSTRAINT F_CATEGORY_ACCOUNT FOREIGN KEY (account_id)
+            REFERENCES money.account (id) DEFERRABLE INITIALLY DEFERRED;
+
         </sql>
     </changeSet>
 </databaseChangeLog>

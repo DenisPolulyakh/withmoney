@@ -10,9 +10,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @EnableJpaRepositories(basePackages = {"com.finance.wallet.repository"})
 @EntityScan(basePackages = {"com.finance.wallet"})
 public class WalletApplication {
-
     public static void main(String[] args) {
         SpringApplication.run(WalletApplication.class, args);
     }
-
 }
