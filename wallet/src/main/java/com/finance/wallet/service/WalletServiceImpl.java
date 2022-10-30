@@ -7,14 +7,18 @@ import com.finance.wallet.dto.enums.EntityOperationType;
 import com.finance.wallet.dto.enums.OperationType;
 import com.finance.wallet.dto.enums.State;
 import com.finance.wallet.model.*;
+import com.finance.wallet.repository.AccountPageRepository;
 import com.finance.wallet.repository.AccountRepository;
 import com.finance.wallet.repository.CategoryOperationRepository;
-import com.finance.wallet.repository.CategoryRepository;
+import com.finance.wallet.repository.CategoryPageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class WalletServiceImpl implements WalletService {
@@ -28,10 +32,10 @@ public class WalletServiceImpl implements WalletService {
     private CategoryOperationRepository categoryOperationRepository;
 
     @Autowired
-    private CategoryRepository categoryRepository;
+    private CategoryPageRepository categoryRepository;
 
     @Autowired
-    private AccountRepository accountRepository;
+    private AccountPageRepository accountRepository;
 
     @Override
     public void processOperation(OperationDto operationDto) {
@@ -85,6 +89,88 @@ public class WalletServiceImpl implements WalletService {
 
         }
         throw new IllegalArgumentException("Неверная операция");
+    }
+
+    @Override
+    public List<Category> getAllCategories() {
+        List<Category> categories = dataService.selectFrom(QCategory.category).fetch();
+        return categories;
+    }
+
+    @Override
+    public Page<Category> getPagingCategories(Pageable pageable) {
+        return categoryRepository.findAllByState("ACTIVE", pageable);
+    }
+
+    @Override
+    public List<Account> getPagingAccounts() {
+        List<Account> accounts = dataService.selectFrom(QAccount.account).fetch();
+        return accounts;
+    }
+
+    @Override
+    public Page<Account> getPagingAccounts(Pageable pageable) {
+        return accountRepository.findAllByState("ACTIVE", pageable);
+    }
+
+    @Override
+    public Category getCategory(Long id) {
+        return dataService.selectFromWhere(QCategory.category, QCategory.class, c -> c.id.eq(id)).fetchFirst();
+    }
+
+    @Override
+    public Category saveCategory(Long id, Category category) {
+        category.setState(State.ACTIVE.name());
+        if (id != null) {
+            Category categoryOld = dataService.selectFromWhere(QCategory.category, QCategory.class, c -> c.id.eq(id)).fetchFirst();
+            category.setCreateTime(categoryOld.getCreateTime());
+        }
+        return categoryRepository.save(category);
+    }
+
+    @Override
+    public Category deleteCategory(Long id) {
+        Category category = dataService.selectFromWhere(QCategory.category, QCategory.class, c -> c.id.eq(id)).fetchFirst();
+        if (category != null) {
+            category.setState(State.DELETE.name());
+            return categoryRepository.save(category);
+        }
+        throw new IllegalArgumentException("Категория не найдена");
+    }
+
+    @Override
+    public Account getAccount(Long id) {
+        return dataService.selectFromWhere(QAccount.account, QAccount.class, c -> c.id.eq(id)).fetchFirst();
+    }
+
+    @Override
+    public Account saveAccount(Long id, Account account) {
+        account.setState(State.ACTIVE.name());
+        if (id != null) {
+            Account accountOld = dataService.selectFromWhere(QAccount.account, QAccount.class, c -> c.id.eq(id)).fetchFirst();
+            account.setCreateTime(accountOld.getCreateTime());
+        }
+        return accountRepository.save(account);
+    }
+
+    @Override
+    public Account deleteAccount(Long id) {
+        Account account = dataService.selectFromWhere(QAccount.account, QAccount.class, c -> c.id.eq(id)).fetchFirst();
+
+        if (account != null) {
+            account.setState(State.DELETE.name());
+            Account deleteAccount = accountRepository.save(account);
+            //В категориях удаляем этот счет
+            List<Category> categories = dataService.selectFromWhere(QCategory.category, QCategory.class, c -> c.account.id.eq(deleteAccount.getId())).fetch();
+            if (categories != null) {
+                categories.stream().forEach(category -> {
+                    category.setAccount(null);
+                    categoryRepository.save(category);
+                });
+            }
+            return deleteAccount;
+        }
+        throw new IllegalArgumentException("Счёт не найден");
     }
 
     private void calculateAmount(Category category, OperationDto operationDto) {

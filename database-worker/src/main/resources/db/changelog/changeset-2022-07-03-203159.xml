@@ -6,7 +6,7 @@
             -- Таблица категории
             create table money.category (
             id serial,
-            account_id         integer       not null,
+            account_id         integer      ,
             state              text          not null,
             name_category      text          not null,
             total_amount       numeric(15,2) DEFAULT 0.0 NOT NULL,

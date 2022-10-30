@@ -26,9 +26,15 @@ public class CategoryDto extends GenericEntity<Long> {
     private String nameCategory;
 
     /**
-     * Ссылка на счёт
+     *  Ссылка на счёт
      */
+
     private Long accountId;
+
+   /* *//**
+     * Нименование счета
+     *//*
+    private String nameAccount;*/
 
     /**
      * Общая сумма категории
@@ -39,5 +45,10 @@ public class CategoryDto extends GenericEntity<Long> {
      * Статус
      */
     private String state;
+
+    /**
+     * Описание
+     */
+    private String description;
 
 }

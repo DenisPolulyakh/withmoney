@@ -23,6 +23,7 @@ public class Category  extends GenericEntity<Long>{
 
     @Column(name = "name_category")
     private String nameCategory;
+
     /**
      * Ссылка на счёт
      */
